@@ -181,6 +181,7 @@ body{background:#0a0a0a;color:#f0f0f0;font-family:'Pretendard',sans-serif;min-he
   <div class="msg" id="successMsg">
     <div class="msg-title" data-ko="등록 완료" data-en="You're in">You're in</div>
     <div class="msg-sub" data-ko="가장 먼저 알림을 보내드릴게요." data-en="We'll alert you first.">We'll alert you first.</div>
+    <div class="msg-countdown" id="countdown" style="margin-top:20px;font-size:32px;font-weight:900;color:#fff;opacity:0;transition:opacity .3s"></div>
   </div>
 
   <div class="msg" id="errorMsg">
@@ -211,8 +212,16 @@ function pick(c){
   document.getElementById('interestsField').value=[...sel].join(', ');
 }
 
+// Check if already registered
+const registered = localStorage.getItem('fndm_registered');
+if(registered){
+  document.getElementById('signupForm').style.display='none';
+  document.getElementById('cardsWrap').style.display='none';
+}
+
 document.getElementById('signupForm').addEventListener('submit',async function(e){
   e.preventDefault();
+  if(localStorage.getItem('fndm_registered'))return;
   const btn=document.getElementById('submitBtn');
   const email=document.getElementById('emailIn').value.trim();
   if(!email)return;
@@ -229,9 +238,29 @@ document.getElementById('signupForm').addEventListener('submit',async function(e
       })
     });
     if(res.ok){
+      localStorage.setItem('fndm_registered','true');
       this.style.display='none';
       document.getElementById('cardsWrap').style.display='none';
       document.getElementById('successMsg').classList.add('show');
+
+      // 5초 대기 후 3,2,1 카운트다운
+      setTimeout(()=>{
+        const cd=document.getElementById('countdown');
+        cd.style.opacity='1';
+        let count=3;
+        cd.textContent=count;
+        const timer=setInterval(()=>{
+          count--;
+          if(count>0){cd.textContent=count}
+          else{
+            clearInterval(timer);
+            cd.textContent='';
+            document.getElementById('successMsg').classList.remove('show');
+            document.getElementById('successMsg').style.display='none';
+          }
+        },1000);
+      },5000);
+
     }else throw new Error();
   }catch(err){
     document.getElementById('errorMsg').classList.add('show');
